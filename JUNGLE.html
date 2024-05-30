@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Voice Recognition</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
 </head>
 <body>
   <h1>Voice Recognition</h1>
@@ -10,36 +11,52 @@
   <div id="pronunciation-feedback"></div>
 
   <script>
-    let recognition;
+    let mediaRecorder;
+    let audioChunks = [];
 
     function startVoiceInput() {
-      // Check if the browser supports the Web Speech API
-      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
-        recognition.interimResults = true;
-        recognition.continuous = true;
-
-        recognition.addEventListener('result', (event) => {
-          const transcript = event.results[event.results.length - 1][0].transcript;
-          document.getElementById('destination').value = transcript.trim();
-
-          // Check pronunciation
-          checkPronunciation(transcript);
-        });
-
-        recognition.addEventListener('end', () => {
-          recognition.stop();
-        });
-
-        recognition.addEventListener('error', (event) => {
-          const feedback = document.getElementById('pronunciation-feedback');
-          feedback.textContent = 'Error: ' + event.error;
-        });
-
-        recognition.start();
+      // Check if the browser supports the Media Recorder API
+      if ('MediaRecorder' in window) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then((stream) => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.addEventListener('dataavailable', (event) => {
+              audioChunks.push(event.data);
+            });
+            mediaRecorder.addEventListener('stop', () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              audioChunks = [];
+              sendAudioToGoogleAPI(audioBlob);
+            });
+            mediaRecorder.start();
+          })
+          .catch((error) => {
+            console.error('Error accessing microphone:', error);
+            alert('Unable to access microphone. Please try again.');
+          });
       } else {
-        alert('Your browser does not support voice recognition. Please try a different browser.');
+        alert('Your browser does not support the required features for voice recognition. Please try a different browser.');
+      }
+    }
+
+    async function sendAudioToGoogleAPI(audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+
+        const response = await axios.post('https://speech.googleapis.com/v1/speech:recognize?key=YOUR_API_KEY', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        const transcript = response.data.results[0].alternatives[0].transcript;
+        document.getElementById('destination').value = transcript.trim();
+        checkPronunciation(transcript);
+      } catch (error) {
+        console.error('Error sending audio to Google API:', error);
+        const feedback = document.getElementById('pronunciation-feedback');
+        feedback.textContent = 'Error: Unable to process voice input. Please try again.';
       }
     }
 
