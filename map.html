@@ -4,15 +4,31 @@
   <title>Move Marker Example</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
+    .container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
     #map {
+      width: 70%;
       height: 500px;
-      width: 100%;
+      margin-right: 20px;
+    }
+
+    #moveButton {
+      font-size: 18px;
+      padding: 10px 20px;
     }
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <button id="moveButton">Move Marker</button>
+  <div class="container">
+    <div id="map"></div>
+    <button id="moveButton">Move Marker</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
