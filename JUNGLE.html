@@ -49,7 +49,7 @@
       </div>
       <div class="buttons">
         <button type="button" onclick="getLocation()">GPS Location</button>
-        <button type="button" onclick="startVoiceInput('zh-HK')">Voice Input (Cantonese)</button>
+        <button type="button" onclick="startVoiceInput()">Voice Input</button>
       </div>
     </form>
   </div>
@@ -69,15 +69,13 @@
       document.getElementById("location").value = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
     }
 
-    function startVoiceInput(lang) {
+    function startVoiceInput() {
       if ('webkitSpeechRecognition' in window) {
         const recognition = new webkitSpeechRecognition();
-        recognition.lang = lang;
+        recognition.lang = 'en-US';
         recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
-          if (currentInputField) {
-            currentInputField.value = transcript;
-          }
+          document.getElementById('destination').value = transcript;
         };
 
         recognition.onstart = () => {
