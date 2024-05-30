@@ -49,14 +49,14 @@
       </div>
       <div class="buttons">
         <button type="button" onclick="getLocation()">GPS Location</button>
-        <button type="button" onclick="startVoiceInput('time')">Time</button>
-        <button type="button" onclick="startVoiceInput('location')">Location</button>
-        <button type="button" onclick="startVoiceInput('destination')">Destination</button>
+        <button type="button" onclick="startVoiceInput('zh-HK')">Voice Input (Cantonese)</button>
       </div>
     </form>
   </div>
 
   <script>
+    let currentInputField = null;
+
     function getLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition);
@@ -69,14 +69,25 @@
       document.getElementById("location").value = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
     }
 
-    function startVoiceInput(fieldId) {
+    function startVoiceInput(lang) {
       if ('webkitSpeechRecognition' in window) {
         const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'en-US';
+        recognition.lang = lang;
         recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
-          document.getElementById(fieldId).value = transcript;
+          if (currentInputField) {
+            currentInputField.value = transcript;
+          }
         };
+
+        recognition.onstart = () => {
+          currentInputField = document.activeElement;
+        };
+
+        recognition.onend = () => {
+          currentInputField = null;
+        };
+
         recognition.start();
       } else {
         alert("Voice input is not supported by this browser.");
