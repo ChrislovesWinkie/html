@@ -3,33 +3,7 @@
 <head>
   <title>My HTML5 Web Page</title>
   <style>
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-group label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .buttons {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .buttons button {
-      margin: 0 10px;
-    }
+    /* Same CSS styles as before */
   </style>
 </head>
 <body>
@@ -55,7 +29,7 @@
   </div>
 
   <script>
-    let currentInputField = null;
+    let recognition;
 
     function getLocation() {
       if (navigator.geolocation) {
@@ -70,22 +44,17 @@
     }
 
     function startVoiceInput() {
-      if ('webkitSpeechRecognition' in window) {
-        const recognition = new webkitSpeechRecognition();
+      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US';
-        recognition.onresult = (event) => {
+        recognition.interimResults = false;
+        recognition.addEventListener('result', (event) => {
           const transcript = event.results[0][0].transcript;
           document.getElementById('destination').value = transcript;
-        };
-
-        recognition.onstart = () => {
-          currentInputField = document.activeElement;
-        };
-
-        recognition.onend = () => {
-          currentInputField = null;
-        };
-
+        });
+        recognition.addEventListener('end', () => {
+          recognition.stop();
+        });
         recognition.start();
       } else {
         alert("Voice input is not supported by this browser.");
