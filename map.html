@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Move Marker Example</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
     #map {
       height: 500px;
@@ -13,32 +14,30 @@
   <div id="map"></div>
   <button id="moveButton">Move Marker</button>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
     // Define the initial marker position
-    let markerPosition = { lat: 40.7128, lng: -74.0060 }; // New York City
+    let markerPosition = [40.7128, -74.0060]; // New York City
 
     function initMap() {
       // Create the map
-      const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 12,
-        center: markerPosition,
-      });
+      const map = L.map("map").setView(markerPosition, 12);
+
+      // Add the base map tiles
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
 
       // Create the marker
-      const marker = new google.maps.Marker({
-        position: markerPosition,
-        map: map,
-        title: "Marker",
-      });
+      const marker = L.marker(markerPosition).addTo(map);
 
       // Add a click event listener to the button
       document.getElementById("moveButton").addEventListener("click", () => {
         // Define the new marker position
-        const newPosition = { lat: 34.0522, lng: -118.2437 }; // Los Angeles
+        const newPosition = [34.0522, -118.2437]; // Los Angeles
 
         // Update the marker position
-        marker.setPosition(newPosition);
+        marker.setLatLng(newPosition);
 
         // Pan the map to the new marker position
         map.panTo(newPosition);
