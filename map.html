@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>OpenStreetMap Example</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <title>Move Marker Example</title>
   <style>
     #map {
       height: 500px;
@@ -13,19 +11,42 @@
 </head>
 <body>
   <div id="map"></div>
+  <button id="moveButton">Move Marker</button>
 
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
   <script>
-    // Initialize the map
-    const map = L.map('map').setView([37.7749, -122.4194], 12); // San Francisco coordinates and zoom level
+    // Define the initial marker position
+    let markerPosition = { lat: 40.7128, lng: -74.0060 }; // New York City
 
-    // Add the OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    function initMap() {
+      // Create the map
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: markerPosition,
+      });
 
-    // Add a marker
-    const marker = L.marker([37.7749, -122.4194]).addTo(map);
-    marker.bindPopup("<b>San Francisco</b><br>Welcome to San Francisco!").openPopup();
+      // Create the marker
+      const marker = new google.maps.Marker({
+        position: markerPosition,
+        map: map,
+        title: "Marker",
+      });
+
+      // Add a click event listener to the button
+      document.getElementById("moveButton").addEventListener("click", () => {
+        // Define the new marker position
+        const newPosition = { lat: 34.0522, lng: -118.2437 }; // Los Angeles
+
+        // Update the marker position
+        marker.setPosition(newPosition);
+
+        // Pan the map to the new marker position
+        map.panTo(newPosition);
+      });
+    }
+
+    // Call the initMap function when the page loads
+    window.onload = initMap;
   </script>
 </body>
 </html>
