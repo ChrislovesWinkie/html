@@ -7,6 +7,7 @@
   <h1>Voice Recognition</h1>
   <button onclick="startVoiceInput()">Start Voice Input</button>
   <input type="text" id="destination" placeholder="Transcribed text will appear here">
+  <div id="pronunciation-feedback"></div>
 
   <script>
     let recognition;
@@ -22,15 +23,33 @@
         recognition.addEventListener('result', (event) => {
           const transcript = event.results[event.results.length - 1][0].transcript;
           document.getElementById('destination').value = transcript.trim();
+
+          // Check pronunciation
+          checkPronunciation(transcript);
         });
 
         recognition.addEventListener('end', () => {
           recognition.stop();
         });
 
+        recognition.addEventListener('error', (event) => {
+          const feedback = document.getElementById('pronunciation-feedback');
+          feedback.textContent = 'Error: ' + event.error;
+        });
+
         recognition.start();
       } else {
         alert('Your browser does not support voice recognition. Please try a different browser.');
+      }
+    }
+
+    function checkPronunciation(transcript) {
+      // Implement your pronunciation checking logic here
+      const feedback = document.getElementById('pronunciation-feedback');
+      if (transcript.includes('difficult word')) {
+        feedback.textContent = 'Pronunciation for "difficult word" could be improved.';
+      } else {
+        feedback.textContent = '';
       }
     }
   </script>
