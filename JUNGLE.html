@@ -1,64 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My HTML5 Web Page</title>
-  <style>
-    /* Same CSS styles as before */
-  </style>
+  <title>Voice Recognition</title>
 </head>
 <body>
-  <div class="container">
-    <form>
-      <div class="form-group">
-        <label for="time">Time:</label>
-        <input type="text" id="time" placeholder="Enter the time">
-      </div>
-      <div class="form-group">
-        <label for="location">Location:</label>
-        <input type="text" id="location" placeholder="Enter the location">
-      </div>
-      <div class="form-group">
-        <label for="destination">Destination:</label>
-        <input type="text" id="destination" placeholder="Enter the destination">
-      </div>
-      <div class="buttons">
-        <button type="button" onclick="getLocation()">GPS Location</button>
-        <button type="button" onclick="startVoiceInput()">Voice Input</button>
-      </div>
-    </form>
-  </div>
+  <h1>Voice Recognition</h1>
+  <button onclick="startVoiceInput()">Start Voice Input</button>
+  <input type="text" id="destination" placeholder="Transcribed text will appear here">
 
   <script>
     let recognition;
 
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-      } else {
-        alert("Geolocation is not supported by this browser.");
-      }
-    }
-
-    function showPosition(position) {
-      document.getElementById("location").value = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
-    }
-
     function startVoiceInput() {
+      // Check if the browser supports the Web Speech API
       if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US';
         recognition.interimResults = true;
         recognition.continuous = true;
+
         recognition.addEventListener('result', (event) => {
           const transcript = event.results[event.results.length - 1][0].transcript;
           document.getElementById('destination').value = transcript.trim();
         });
+
         recognition.addEventListener('end', () => {
           recognition.stop();
         });
+
         recognition.start();
       } else {
-        alert("Voice input is not supported by this browser.");
+        alert('Your browser does not support voice recognition. Please try a different browser.');
       }
     }
   </script>
