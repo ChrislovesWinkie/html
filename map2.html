@@ -15,12 +15,19 @@
 
   <script>
     // Initialize the map
-    let map;
+    let map, directionsService, directionsRenderer;
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 0, lng: 0 },
         zoom: 8
       });
+
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+
+      // Get the user's current location
+      getLocation();
     }
 
     // Get the user's current location
@@ -32,7 +39,7 @@
       }
     }
 
-    // Display the current location on the map
+    // Display the current location and path on the map
     function showPosition(position) {
       const latLng = {
         lat: position.coords.latitude,
@@ -49,6 +56,42 @@
       // Center the map on the current location
       map.setCenter(latLng);
       map.setZoom(15);
+
+      // Calculate the directions and render the path
+      calculateAndDisplayRoute(latLng);
+
+      // Check if the user is within 300 meters of the path
+      checkPathDeviation(latLng);
+    }
+
+    // Calculate and display the route
+    function calculateAndDisplayRoute(latLng) {
+      // Replace these with the start and end points of your path
+      const start = { lat: 37.7749, lng: -122.4194 }; // San Francisco
+      const end = { lat: 34.0522, lng: -118.2437 }; // Los Angeles
+
+      directionsService.route({
+        origin: start,
+        destination: end,
+        travelMode: 'DRIVING'
+      }, (response, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(response);
+        } else {
+          window.alert('Directions request failed due to ' + status);
+        }
+      });
+    }
+
+    // Check if the user is within 300 meters of the path
+    function checkPathDeviation(latLng) {
+      const distanceFromPath = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(latLng), directionsRenderer.getDirections().routes[0].overview_path);
+      if (distanceFromPath > 300) {
+        // Play a Cantonese audio alert
+        const audio = new Audio('path_deviation_alert.mp3');
+        audio.play();
+        alert('你可能已經偏離路徑，需要重新規劃路線。');
+      }
     }
 
     // Handle location errors
@@ -74,14 +117,13 @@
     // Load the Google Maps API and initialize the map
     function loadGoogleMapsAPI() {
       const script = document.createElement('script');
-      script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD95rSqkw6pXe8BBztDXh0B101HjTksy-4&callback=initMap';
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap&libraries=geometry';
       script.async = true;
       document.body.appendChild(script);
     }
 
-    // Call the functions to get the user's location and display it on the map
+    // Call the functions to load the Google Maps API and initialize the map
     loadGoogleMapsAPI();
-    getLocation();
   </script>
 </body>
 </html>
