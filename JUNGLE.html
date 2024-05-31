@@ -1,74 +1,132 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Voice Recognition</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
-</head>
-<body>
-  <h1>Voice Recognition</h1>
-  <button onclick="startVoiceInput()">Start Voice Input</button>
-  <input type="text" id="destination" placeholder="Transcribed text will appear here">
-  <div id="pronunciation-feedback"></div>
+// Replace YOUR_API_KEY with your actual Google Maps API key
+const apiKey = "YOUR_API_KEY";
 
-  <script>
-    let mediaRecorder;
-    let audioChunks = [];
+// Initialize Google Map
+function initMap() {
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 15,
+        center: { lat: 22.3027, lng: 114.1772 }, // Default center to Hong Kong
+    });
+}
 
-    function startVoiceInput() {
-      // Check if the browser supports the Media Recorder API
-      if ('MediaRecorder' in window) {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-          .then((stream) => {
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.addEventListener('dataavailable', (event) => {
-              audioChunks.push(event.data);
-            });
-            mediaRecorder.addEventListener('stop', () => {
-              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-              audioChunks = [];
-              sendAudioToGoogleAPI(audioBlob);
-            });
-            mediaRecorder.start();
-          })
-          .catch((error) => {
-            console.error('Error accessing microphone:', error);
-            alert('Unable to access microphone. Please try again.');
-          });
-      } else {
-        alert('Your browser does not support the required features for voice recognition. Please try a different browser.');
-      }
-    }
+// Search for route
+$("#search-route").click(function () {
+    const destination = $("#destination").val();
 
-    async function sendAudioToGoogleAPI(audioBlob) {
-      try {
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
+    // Use Google Maps API to search for route
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(map);
 
-        const response = await axios.post('https://speech.googleapis.com/v1/speech:recognize?key=YOUR_API_KEY', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+    const request = {
+        origin: { lat: 22.3027, lng: 114.1772 }, // Replace with user's current location
+        destination: destination,
+        travelMode: google.maps.TravelMode.TRANSIT,
+    };
+
+    directionsService.route(request, function (response, status) {
+        if (status === "OK") {
+            // Display route details
+            const route = response.routes[0];
+            const legs = route.legs;
+            let instructions = "";
+
+            for (let i = 0; i < legs.length; i++) {
+                const steps = legs[i].steps;
+                for (let j = 0; j < steps.length; j++) {
+                    instructions += `${steps[j].instructions} `;
+                }
+            }
+
+            $("#route-details").html(instructions);
+
+            // Draw route on map
+            directionsRenderer.setDirections(response);
+        } else {
+            alert("無法找到路線");
+        }
+    });
+});
+
+// Start navigation
+let userMarker;
+let watchId;
+
+$("#start-navigation").click(function () {
+    // Start tracking user's location
+    if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(function (position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Update user's location on map
+            if (!userMarker) {
+                userMarker = new google.maps.Marker({
+                    position: { lat, lng },
+                    map: map,
+                    icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                });
+            } else {
+                userMarker.setPosition({ lat, lng });
+            }
+
+            // Check for path deviation
+            // ...
         });
+    } else {
+        alert("您的瀏覽器不支援定位功能");
+    }
+});
 
-        const transcript = response.data.results[0].alternatives[0].transcript;
-        document.getElementById('destination').value = transcript.trim();
-        checkPronunciation(transcript);
-      } catch (error) {
-        console.error('Error sending audio to Google API:', error);
-        const feedback = document.getElementById('pronunciation-feedback');
-        feedback.textContent = 'Error: Unable to process voice input. Please try again.';
-      }
+// Voice input (using Google Cloud Speech-to-Text API)
+$("#voice-input").click(function () {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("您的瀏覽器不支援語音輸入");
+        return;
     }
 
-    function checkPronunciation(transcript) {
-      // Implement your pronunciation checking logic here
-      const feedback = document.getElementById('pronunciation-feedback');
-      if (transcript.includes('difficult word')) {
-        feedback.textContent = 'Pronunciation for "difficult word" could be improved.';
-      } else {
-        feedback.textContent = '';
-      }
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "yue-Hant-HK"; // Cantonese (Traditional Chinese, Hong Kong)
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = function (event) {
+        const transcript = event.results[event.resultIndex][0].transcript;
+        $("#destination").val(transcript);
+    };
+
+    recognition.start();
+});
+
+// Path deviation alert
+let lastKnownPosition;
+
+function checkPathDeviation(position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    // Calculate distance from last known position
+    if (lastKnownPosition) {
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(lat, lng),
+            new google.maps.LatLng(lastKnownPosition.latitude, lastKnownPosition.longitude)
+        );
+
+        if (distance > 300) {
+            alert("您可能已偏離路線，可能需要重新規劃路線");
+        }
     }
-  </script>
-</body>
-</html>
+
+    lastKnownPosition = { latitude: lat, longitude: lng };
+}
+
+// Cantonese text-to-speech (using Google Cloud Text-to-Speech API)
+function speakCantonese(text) {
+    // ... (Implementation using Google Cloud Text-to-Speech API)
+}
+
+// Event listener for clicking on instructions
+$("#route-details").on("click", "p", function () {
+    const instruction = $(this).text();
+    speakCantonese(instruction);
+});
