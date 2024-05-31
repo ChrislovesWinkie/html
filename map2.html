@@ -1,129 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Current Location Example</title>
-  <style>
-    #map {
-      height: 400px;
-      width: 100%;
-    }
-  </style>
+    <title>Elderly Arrival Alarm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #timer {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        button {
+            font-size: 1.2em;
+            padding: 10px 20px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Current Location</h1>
-  <div id="map"></div>
+    <h1>Elderly Arrival Alarm</h1>
+    <div id="timer">2:00</div>
+    <button id="start-btn">Start Alarm</button>
 
-  <script>
-    // Initialize the map
-    let map, directionsService, directionsRenderer;
-    function initMap() {
-      map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 0, lng: 0 },
-        zoom: 8
-      });
+    <script>
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
 
-      directionsService = new google.maps.DirectionsService();
-      directionsRenderer = new google.maps.DirectionsRenderer();
-      directionsRenderer.setMap(map);
+        let timer = 120; // 2 minutes in seconds
+        let intervalId;
 
-      // Get the user's current location
-      getLocation();
-    }
-
-    // Get the user's current location
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, handleLocationError);
-      } else {
-        handleLocationError(true);
-      }
-    }
-
-    // Display the current location and path on the map
-    function showPosition(position) {
-      const latLng = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-
-      // Create a marker for the current location
-      const marker = new google.maps.Marker({
-        position: latLng,
-        map: map,
-        icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-      });
-
-      // Center the map on the current location
-      map.setCenter(latLng);
-      map.setZoom(15);
-
-      // Calculate the directions and render the path
-      calculateAndDisplayRoute(latLng);
-
-      // Check if the user is within 300 meters of the path
-      checkPathDeviation(latLng);
-    }
-
-    // Calculate and display the route
-    function calculateAndDisplayRoute(latLng) {
-      // Replace these with the start and end points of your path
-      const start = { lat: 37.7749, lng: -122.4194 }; // San Francisco
-      const end = { lat: 34.0522, lng: -118.2437 }; // Los Angeles
-
-      directionsService.route({
-        origin: start,
-        destination: end,
-        travelMode: 'DRIVING'
-      }, (response, status) => {
-        if (status === 'OK') {
-          directionsRenderer.setDirections(response);
-        } else {
-          window.alert('Directions request failed due to ' + status);
+        function updateTimer() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
-      });
-    }
 
-    // Check if the user is within 300 meters of the path
-    function checkPathDeviation(latLng) {
-      const distanceFromPath = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(latLng), directionsRenderer.getDirections().routes[0].overview_path);
-      if (distanceFromPath > 300) {
-        // Play a Cantonese audio alert
-        const audio = new Audio('path_deviation_alert.mp3');
-        audio.play();
-        alert('你可能已經偏離路徑，需要重新規劃路線。');
-      }
-    }
+        function startAlarm() {
+            intervalId = setInterval(() => {
+                timer--;
+                updateTimer();
 
-    // Handle location errors
-    function handleLocationError(error) {
-      let errorMessage;
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          errorMessage = "User denied the request for Geolocation.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          errorMessage = "Location information is unavailable.";
-          break;
-        case error.TIMEOUT:
-          errorMessage = "The request to get user location timed out.";
-          break;
-        case error.UNKNOWN_ERROR:
-          errorMessage = "An unknown error occurred.";
-          break;
-      }
-      alert(errorMessage);
-    }
+                if (timer === 0) {
+                    clearInterval(intervalId);
+                    alert('Time to get off the car! You have arrived at the station.');
+                }
+            }, 1000);
 
-    // Load the Google Maps API and initialize the map
-    function loadGoogleMapsAPI() {
-      const script = document.createElement('script');
-      script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap&libraries=geometry';
-      script.async = true;
-      document.body.appendChild(script);
-    }
+            startBtn.disabled = true;
+        }
 
-    // Call the functions to load the Google Maps API and initialize the map
-    loadGoogleMapsAPI();
-  </script>
+        startBtn.addEventListener('click', startAlarm);
+    </script>
 </body>
 </html>
+
