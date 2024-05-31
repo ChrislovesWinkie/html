@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Elderly Arrival Sound Alarm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #timer {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        button {
+            font-size: 1.2em;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Elderly Arrival Sound Alarm</h1>
+    <div id="timer">2:00</div>
+    <button id="start-btn">Start Alarm</button>
+
+    <audio id="alarm-sound" src="alarm.mp3" preload="auto"></audio>
+
+    <script>
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
+        const alarmSound = document.getElementById('alarm-sound');
+
+        let timer = 120; // 2 minutes in seconds
+        let intervalId;
+
+        function updateTimer() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startAlarm() {
+            intervalId = setInterval(() => {
+                timer--;
+                updateTimer();
+
+                if (timer === 120) { // 2 minutes before arrival
+                    alarmSound.play();
+                    alert('Time to get off the car! You will arrive at the station in 2 minutes.');
+                }
+
+                if (timer === 0) {
+                    clearInterval(intervalId);
+                    alarmSound.play();
+                    alert('You have arrived at the station. Please get off the car.');
+                }
+            }, 1000);
+
+            startBtn.disabled = true;
+        }
+
+        startBtn.addEventListener('click', startAlarm);
+    </script>
+</body>
+</html>
