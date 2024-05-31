@@ -206,7 +206,7 @@
             const checkpointLocation = new google.maps.LatLng(nearestCheckpoint.lat, nearestCheckpoint.lng);
             const distance = google.maps.geometry.spherical.computeDistanceBetween(currentLocation, checkpointLocation);
 
-            if (distance > 100) {
+            if (distance > 150) {
                 document.body.classList.add('blinking');
                 const msg = new SpeechSynthesisUtterance('您已偏離路線！');
                 if (cantoneseVoice) {
