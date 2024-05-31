@@ -112,9 +112,7 @@ function checkPathDeviation(position) {
             new google.maps.LatLng(lastKnownPosition.latitude, lastKnownPosition.longitude)
         );
 
-        if (distance > 300) {
-            alert("您可能已偏離路線，可能需要重新規劃路線");
-        }
+        
     }
 
     lastKnownPosition = { latitude: lat, longitude: lng };
