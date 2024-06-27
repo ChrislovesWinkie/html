@@ -1,0 +1,69 @@
+import time
+import os
+import math
+
+def add_sound_alarm(destination_distance, alarm_distance=600):
+    """
+    Adds a sound alarm 600 meters before reaching the destination.
+    
+    Args:
+        destination_distance (float): The distance to the destination in meters.
+        alarm_distance (float, optional): The distance in meters before the destination to trigger the alarm. Defaults to 600.
+    """
+    
+    if destination_distance <= alarm_distance:
+        print("You have reached the destination.")
+    else:
+        remaining_distance = destination_distance - alarm_distance
+        print(f"The alarm will sound when you are {alarm_distance} meters away from the destination.")
+        
+        while remaining_distance > 0:
+            time.sleep(1)
+            remaining_distance -= 1
+            print(f"{remaining_distance} meters to the alarm.")
+        
+        print("ALARM! You are 600 meters from the destination.")
+        
+        # Play a sound alarm
+        if os.name == 'nt':  # Windows
+            os.system('start Windows\Media\Windows Driver Error.wav')
+        else:  # Linux or macOS
+            os.system('afplay /System/Library/Sounds/Funk.aiff')
+
+# Example usage
+destination_distance = 800
+add_sound_alarm(destination_distance)import time
+import os
+import math
+
+def add_sound_alarm(destination_distance, alarm_distance=600):
+    """
+    Adds a sound alarm 600 meters before reaching the destination.
+    
+    Args:
+        destination_distance (float): The distance to the destination in meters.
+        alarm_distance (float, optional): The distance in meters before the destination to trigger the alarm. Defaults to 600.
+    """
+    
+    if destination_distance <= alarm_distance:
+        print("You have reached the destination.")
+    else:
+        remaining_distance = destination_distance - alarm_distance
+        print(f"The alarm will sound when you are {alarm_distance} meters away from the destination.")
+        
+        while remaining_distance > 0:
+            time.sleep(1)
+            remaining_distance -= 1
+            print(f"{remaining_distance} meters to the alarm.")
+        
+        print("ALARM! You are 600 meters from the destination.")
+        
+        # Play a sound alarm
+        if os.name == 'nt':  # Windows
+            os.system('start Windows\Media\Windows Driver Error.wav')
+        else:  # Linux or macOS
+            os.system('afplay /System/Library/Sounds/Funk.aiff')
+
+# Example usage
+destination_distance = 800
+add_sound_alarm(destination_distance)
