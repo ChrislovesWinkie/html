@@ -1,278 +1,66 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>導航應用程式</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Elderly Arrival Sound Alarm</title>
     <style>
         body {
-            padding: 20px;
-            font-size: 1.5em; /* Increase font size */
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
         }
-        #map {
-            height: 400px;
-            width: 100%;
+        #timer {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
-        #instructions {
-            margin-top: 20px;
-        }
-        .blinking {
-            animation: blinkingBackground 1s infinite;
-        }
-        @keyframes blinkingBackground {
-            0% { background-color: #ffcccc; }
-            50% { background-color: #ffffff; }
-            100% { background-color: #ffcccc; }
+        button {
+            font-size: 1.2em;
+            padding: 10px 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>導航應用程式</h1>
-        <form>
-            <div class="form-group">
-                <label for="currentLocation">當前位置</label>
-                <input type="text" class="form-control" id="currentLocation" readonly>
-            </div>
-            <div class="form-group">
-                <label for="destination">目的地</label>
-                <input type="text" class="form-control" id="destination">
-            </div>
-            <div class="form-group">
-                <label for="timeRemaining">剩餘時間</label>
-                <input type="text" class="form-control" id="timeRemaining" readonly>
-            </div>
-        </form>
-        <div class="btn-group btn-group-lg" role="group">
-            <button type="button" class="btn btn-primary" onclick="getCurrentLocation()">獲取GPS位置</button>
-            <button type="button" class="btn btn-secondary" onclick="startVoiceInput()">語音輸入</button>
-            <button type="button" class="btn btn-success" onclick="generateRoute()">立即路線</button>
-            <button type="button" class="btn btn-danger" onclick="startNavigation()">開始導航</button>
-        </div>
-        <div id="map"></div>
-        <div id="instructions" class="list-group"></div>
-    </div>
+    <h1>Elderly Arrival Sound Alarm</h1>
+    <div id="timer">2:00</div>
+    <button id="start-btn">Start Alarm</button>
+
+    <audio id="alarm-sound" src="reminderalarm.wav" preload="auto"></audio>
 
     <script>
-        let currentLat, currentLng;
-        let watchId;
-        const checkpoints = [];
-        let map, directionsRenderer, directionsService;
-        let currentLocationMarker;
-        let cantoneseVoice;
-        let totalDuration = 0;
-        let startTime;
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
+        const alarmSound = document.getElementById('alarm-sound');
 
-        function getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    currentLat = position.coords.latitude;
-                    currentLng = position.coords.longitude;
-                    document.getElementById('currentLocation').value = `${currentLat}, ${currentLng}`;
-                });
-            } else {
-                alert("此瀏覽器不支持地理定位。");
-            }
+        let timer = 120; // 2 minutes in seconds
+        let intervalId;
+
+        function updateTimer() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        function startVoiceInput() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'yue-Hant-HK'; // Cantonese language code
-            recognition.start();
+        function startAlarm() {
+            intervalId = setInterval(() => {
+                timer--;
+                updateTimer();
 
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('destination').value = transcript;
-            };
-        }
-
-        function generateRoute() {
-            const destination = document.getElementById('destination').value;
-            if (!destination) {
-                alert("請輸入目的地。");
-                return;
-            }
-
-            const origin = { lat: parseFloat(currentLat), lng: parseFloat(currentLng) };
-
-            const directionsRequest = {
-                origin: origin,
-                destination: destination,
-                travelMode: 'TRANSIT'
-            };
-
-            directionsService.route(directionsRequest, (result, status) => {
-                if (status === 'OK') {
-                    directionsRenderer.setDirections(result);
-                    const route = result.routes[0];
-                    checkpoints.length = 0;
-                    const instructions = [];
-                    totalDuration = 0;
-                    route.legs[0].steps.forEach(step => {
-                        const stepDuration = step.duration.value; // Duration in seconds
-                        totalDuration += stepDuration;
-                        if (step.transit) {
-                            checkpoints.push({
-                                lat: step.transit.departure_stop.location.lat(),
-                                lng: step.transit.departure_stop.location.lng(),
-                                name: step.transit.departure_stop.name
-                            });
-                            instructions.push({
-                                instruction: step.instructions,
-                                vehicle: step.transit.line.vehicle.name,
-                                line: step.transit.line.short_name,
-                                departureStop: step.transit.departure_stop.name,
-                                arrivalStop: step.transit.arrival_stop.name,
-                                departureTime: step.transit.departure_time.text,
-                                arrivalTime: step.transit.arrival_time.text,
-                                headsign: step.transit.headsign,
-                                duration: step.duration.text // Duration text
-                            });
-                        } else {
-                            instructions.push({
-                                instruction: step.instructions,
-                                duration: step.duration.text // Duration text
-                            });
-                        }
-                    });
-                    displayInstructions(instructions);
-                    document.getElementById('timeRemaining').value = formatDuration(totalDuration);
-                } else {
-                    alert("無法生成路線：" + status);
+                if (timer === 120) { // 2 minutes before arrival
+                    alarmSound.play();
+                    alert('Time to get off the car! You will arrive at the station in 2 minutes.');
                 }
-            });
-        }
 
-        function displayInstructions(instructions) {
-            const instructionsList = document.getElementById('instructions');
-            instructionsList.innerHTML = '';
-            instructions.forEach((step, index) => {
-                const listItem = document.createElement('a');
-                listItem.className = 'list-group-item list-group-item-action';
-                listItem.innerHTML = `<strong>步驟 ${index + 1}:</strong> ${step.instruction} (${step.duration})`;
-                if (step.vehicle) {
-                    listItem.innerHTML += `<br><strong>交通工具:</strong> ${step.vehicle}`;
-                    listItem.innerHTML += `<br><strong>線路:</strong> ${step.line}`;
-                    listItem.innerHTML += `<br><strong>出發站:</strong> ${step.departureStop}`;
-                    listItem.innerHTML += `<br><strong>到達站:</strong> ${step.arrivalStop}`;
-                    listItem.innerHTML += `<br><strong>出發時間:</strong> ${step.departureTime}`;
-                    listItem.innerHTML += `<br><strong>到達時間:</strong> ${step.arrivalTime}`;
-                    listItem.innerHTML += `<br><strong>方向:</strong> ${step.headsign}`;
+                if (timer === 0) {
+                    clearInterval(intervalId);
+                    alarmSound.play()
+               
                 }
-                listItem.onclick = () => {
-                    let msg = new SpeechSynthesisUtterance(step.instruction);
-                    if (step.vehicle) {
-                        msg.text += `，交通工具：${step.vehicle}，線路：${step.line}，出發站：${step.departureStop}，到達站：${step.arrivalStop}，出發時間：${step.departureTime}，到達時間：${step.arrivalTime}，方向：${step.headsign}`;
-                    }
-                    if (cantoneseVoice) {
-                        msg.voice = cantoneseVoice;
-                    }
-                    window.speechSynthesis.speak(msg);
-                };
-                instructionsList.appendChild(listItem);
-            });
+            }, 1000);
+
+            startBtn.disabled = true;
         }
 
-        function startNavigation() {
-            if (navigator.geolocation) {
-                startTime = new Date();
-                watchId = navigator.geolocation.watchPosition(onPositionUpdate, null, { maximumAge: 60000, timeout: 5000, enableHighAccuracy: true });
-            } else {
-                alert("此瀏覽器不支持地理定位。");
-            }
-        }
-
-        function onPositionUpdate(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            document.getElementById('currentLocation').value = `${lat}, ${lng}`;
-            const currentLocation = new google.maps.LatLng(lat, lng);
-
-            if (!currentLocationMarker) {
-                currentLocationMarker = new google.maps.Marker({
-                    position: currentLocation,
-                    map: map,
-                    title: "當前位置"
-                });
-            } else {
-                currentLocationMarker.setPosition(currentLocation);
-            }
-
-            map.setCenter(currentLocation);
-            map.setZoom(16);
-
-            const nearestCheckpoint = checkpoints[0];
-            const checkpointLocation = new google.maps.LatLng(nearestCheckpoint.lat, nearestCheckpoint.lng);
-            const distance = google.maps.geometry.spherical.computeDistanceBetween(currentLocation, checkpointLocation);
-
-            if (distance > 300) {
-                document.body.classList.add('blinking');
-                const msg = new SpeechSynthesisUtterance('您已偏離路線,請調整方向!');
-                if (cantoneseVoice) {
-                    msg.voice = cantoneseVoice;
-                }
-                window.speechSynthesis.speak(msg);
-                const alertSound = new Audio('alert.mp3'); // Ensure you have an alert.mp3 file
-                alertSound.play();
-            } else if (distance > 150) {
-                document.body.classList.add('blinking');
-                const msg = new SpeechSynthesisUtterance('您已偏離路線！');
-                if (cantoneseVoice) {
-                    msg.voice = cantoneseVoice;
-                }
-                window.speechSynthesis.speak(msg);
-                const alertSound = new Audio('alert.mp3');
-                alertSound.play();
-            } else {
-                document.body.classList.remove('blinking');
-                const msg = new SpeechSynthesisUtterance(`當前位置: ${lat}, ${lng}`);
-                if (cantoneseVoice) {
-                    msg.voice = cantoneseVoice;
-                }
-                window.speechSynthesis.speak(msg);
-            }
-            // Recalculate remaining time
-            recalculateRemainingTime();
-        }
-
-
-        function recalculateRemainingTime() {
-            const currentTime = new Date();
-            const elapsedTimeInSeconds = (currentTime - startTime) / 1000;
-            const remainingTimeInSeconds = totalDuration - elapsedTimeInSeconds;
-            document.getElementById('timeRemaining').value = formatDuration(remainingTimeInSeconds);
-        }
-
-        function formatDuration(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins} 分鐘 ${secs} 秒`;
-        }
-
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: -34.397, lng: 150.644 },
-                zoom: 8
-            });
-            directionsRenderer = new google.maps.DirectionsRenderer();
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer.setMap(map);
-        }
-
-        function loadVoices() {
-            const voices = window.speechSynthesis.getVoices();
-            cantoneseVoice = voices.find(voice => voice.lang === 'zh-HK' || voice.lang === 'zh-Hant-HK');
-        }
-
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-
-        if (cantoneseVoice) {
-            msg.voice = cantoneseVoice;
-        }        
-        
+        startBtn.addEventListener('click', startAlarm);
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD95rSqkw6pXe8BBztDXh0B101HjTksy-4&callback=initMap&libraries=geometry&language=zh-HK" async defer></script>
 </body>
 </html>
-
