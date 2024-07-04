@@ -8,7 +8,7 @@
     <style>
         body {
             padding: 20px;
-            font-size: 1.5em; /* Increase font size */
+            font-size: 2em; /* Increase font size */
         }
         #map {
             height: 400px;
@@ -24,6 +24,22 @@
             0% { background-color: #ffcccc; }
             50% { background-color: #ffffff; }
             100% { background-color: #ffcccc; }
+        }
+        .btn-flash {
+            animation: blinkingBackground 1s infinite;
+        }
+
+        @keyframes flash {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 1;
+        }       
+
         }
     </style>
 </head>
@@ -45,10 +61,9 @@
             </div>
         </form>
         <div class="btn-group btn-group-lg" role="group">
-            <button type="button" class="btn btn-primary" onclick="getCurrentLocation()">獲取GPS位置</button>
-            <button type="button" class="btn btn-secondary" onclick="startVoiceInput()">語音輸入</button>
-            <button type="button" class="btn btn-success" onclick="generateRoute()">立即路線</button>
-            <button type="button" class="btn btn-danger" onclick="startNavigation()">開始導航</button>
+            <button type="button" style="font-size: xx-large;" class="btn btn-primary" onclick="getCurrentLocation()">獲取GPS位置</button>
+            <button type="button"  id="voiceinput" style="font-size: xx-large;" class="btn btn-secondary" onclick="startVoiceInput()">語音輸入</button>
+            <button type="button" style="font-size: xx-large;" class="btn btn-success" onclick="generateRoute()">立即路線</button>
         </div>
         <div id="map"></div>
         <div id="instructions" class="list-group"></div>
@@ -77,6 +92,10 @@
         }
 
         function startVoiceInput() {
+            document.getElementById('voiceinput').classList.add('btn-flash');
+            setTimeout(function() {
+                this.classList.remove('btn-flash');
+            }.bind(document.getElementById('voiceinput')), 5000);
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'yue-Hant-HK'; // Cantonese language code
             recognition.start();
