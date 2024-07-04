@@ -181,7 +181,7 @@
         }
         listItem.onclick = () => {
             let msg = new SpeechSynthesisUtterance(step.instruction);
-            msg.rate = 0.8; // Set the rate to 0.8 (slower)
+            msg.rate = 0.3; // Set the rate to 0.3 (slower)
             if (step.vehicle) {
                 msg.text += `，交通工具：${step.vehicle}，線路：${step.line}，出發站：${step.departureStop}，到達站：${step.arrivalStop}，出發時間：${step.departureTime}，到達時間：${step.arrivalTime}，方向：${step.headsign}`;
             }
