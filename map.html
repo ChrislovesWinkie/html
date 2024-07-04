@@ -92,12 +92,17 @@
         }
 
         function startVoiceInput() {
-            document.getElementById('voiceinput').classList.add('btn-flash');
-            setTimeout(function() {
-                this.classList.remove('btn-flash');
-            }.bind(document.getElementById('voiceinput')), 5000);
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'yue-Hant-HK'; // Cantonese language code
+
+            recognition.onstart = function() {
+                document.getElementById('voiceinput').classList.add('btn-flash');
+            };
+
+            recognition.onend = function() {
+                document.getElementById('voiceinput').classList.remove('btn-flash');
+            };
+
             recognition.start();
 
             recognition.onresult = function(event) {
