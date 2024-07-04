@@ -164,34 +164,35 @@
         }
 
         function displayInstructions(instructions) {
-            const instructionsList = document.getElementById('instructions');
-            instructionsList.innerHTML = '';
-            instructions.forEach((step, index) => {
-                const listItem = document.createElement('a');
-                listItem.className = 'list-group-item list-group-item-action';
-                listItem.innerHTML = `<strong>步驟 ${index + 1}:</strong> ${step.instruction} (${step.duration})`;
-                if (step.vehicle) {
-                    listItem.innerHTML += `<br><strong>交通工具:</strong> ${step.vehicle}`;
-                    listItem.innerHTML += `<br><strong>線路:</strong> ${step.line}`;
-                    listItem.innerHTML += `<br><strong>出發站:</strong> ${step.departureStop}`;
-                    listItem.innerHTML += `<br><strong>到達站:</strong> ${step.arrivalStop}`;
-                    listItem.innerHTML += `<br><strong>出發時間:</strong> ${step.departureTime}`;
-                    listItem.innerHTML += `<br><strong>到達時間:</strong> ${step.arrivalTime}`;
-                    listItem.innerHTML += `<br><strong>方向:</strong> ${step.headsign}`;
-                }
-                listItem.onclick = () => {
-                    let msg = new SpeechSynthesisUtterance(step.instruction);
-                    if (step.vehicle) {
-                        msg.text += `，交通工具：${step.vehicle}，線路：${step.line}，出發站：${step.departureStop}，到達站：${step.arrivalStop}，出發時間：${step.departureTime}，到達時間：${step.arrivalTime}，方向：${step.headsign}`;
-                    }
-                    if (cantoneseVoice) {
-                        msg.voice = cantoneseVoice;
-                    }
-                    window.speechSynthesis.speak(msg);
-                };
-                instructionsList.appendChild(listItem);
-            });
+    const instructionsList = document.getElementById('instructions');
+    instructionsList.innerHTML = '';
+    instructions.forEach((step, index) => {
+        const listItem = document.createElement('a');
+        listItem.className = 'list-group-item list-group-item-action';
+        listItem.innerHTML = `<strong>步驟 ${index + 1}:</strong> ${step.instruction} (${step.duration})`;
+        if (step.vehicle) {
+            listItem.innerHTML += `<br><strong>交通工具:</strong> ${step.vehicle}`;
+            listItem.innerHTML += `<br><strong>線路:</strong> ${step.line}`;
+            listItem.innerHTML += `<br><strong>出發站:</strong> ${step.departureStop}`;
+            listItem.innerHTML += `<br><strong>到達站:</strong> ${step.arrivalStop}`;
+            listItem.innerHTML += `<br><strong>出發時間:</strong> ${step.departureTime}`;
+            listItem.innerHTML += `<br><strong>到達時間:</strong> ${step.arrivalTime}`;
+            listItem.innerHTML += `<br><strong>方向:</strong> ${step.headsign}`;
         }
+        listItem.onclick = () => {
+            let msg = new SpeechSynthesisUtterance(step.instruction);
+            msg.rate = 0.8; // Set the rate to 0.8 (slower)
+            if (step.vehicle) {
+                msg.text += `，交通工具：${step.vehicle}，線路：${step.line}，出發站：${step.departureStop}，到達站：${step.arrivalStop}，出發時間：${step.departureTime}，到達時間：${step.arrivalTime}，方向：${step.headsign}`;
+            }
+            if (cantoneseVoice) {
+                msg.voice = cantoneseVoice;
+            }
+            window.speechSynthesis.speak(msg);
+        };
+        instructionsList.appendChild(listItem);
+    });
+}
 
         function startNavigation() {
             if (navigator.geolocation) {
